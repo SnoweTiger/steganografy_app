@@ -9,6 +9,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  image: ^4.3.0
+  conversion: ^1.0.0+1
+  file_picker: ^8.1.4
 
 dev_dependencies:
   flutter_test:
