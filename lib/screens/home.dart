@@ -1,7 +1,9 @@
-import 'dart:typed_data';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:steganografy_app/components/message_input.dart';
+import 'package:steganografy_app/steganography.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -13,84 +15,114 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   Uint8List? imageBytes;
   File? file;
+  final _messageController = TextEditingController();
+  ImageSteganography? steg;
 
-  void encodeImage() async {
-    String? outputFile = await FilePicker.platform.saveFile(
-      dialogTitle: 'Please select an output file:',
-      fileName: 'output-file.png',
-      // type: FileType.image,
-      // allowedExtensions: ['png'],
-      bytes: await file!.readAsBytes(),
-    );
-
-    if (outputFile == null) {
-      // User canceled the picker
-    } else {
-      print(outputFile);
-      file!.copy(outputFile);
-    }
-  }
-
-  void chooseImage() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
+  void loadImage() async {
+    final result = await FilePicker.platform.pickFiles(
       allowMultiple: false,
       type: FileType.image,
-      allowedExtensions: ['png', 'jpg', 'jpeg'],
     );
 
     if (result != null) {
-      print(1);
+      debugPrint('FilePickerResult 1');
       file = File(result.files.single.path!);
+      imageBytes = await file!.readAsBytes();
+      steg = ImageSteganography(imageBytes!);
       setState(() {});
     } else {
-      print(2);
+      debugPrint('FilePickerResult else');
     }
+  }
 
-    // FilePickerResult? result;
+  void decodeImage() async {
+    final message = await steg!.getMessage();
+    _messageController.text = message;
+    setState(() {});
+  }
 
-    // if (result != null) {
-    //   setImage(result);
-    // }
+  void encodeImage() async {
+    final message = _messageController.text;
+
+    // String? outputFile = await FilePicker.platform.saveFile(
+    //   dialogTitle: 'Please select an output file:',
+    //   fileName: 'output-file.png',
+    //   type: FileType.image,
+    // );
+
+    await steg!.cloakMessage(message);
+    final outputFile = '';
+
+    if (outputFile != null) {
+      // final outputFilePath = outputFile + '.png';
+      final outputFilePath = 'images/output-file.png';
+      final png = steg!.getPNG();
+      await File(outputFilePath).writeAsBytes(png);
+    }
+  }
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    const title = 'Steganografy App';
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Steganografy App'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: const Text(
+          title,
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            Container(
-              height: 500,
-              margin: const EdgeInsets.all(15),
-              child: file == null
-                  ? const Center(child: Text('Choose image'))
-                  : Image.file(
-                      file!,
-                      fit: BoxFit.fill,
-                    ),
-              // Image.memory(
-              //     imageBytes!,
-              //
-              //   ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Container(
+                  height: 250,
+                  margin: const EdgeInsets.all(15),
+                  child: file == null
+                      ? const Center(child: Text('Choose image'))
+                      : Image.file(file!, fit: BoxFit.fill),
+                ),
+                // Container(
+                //   height: 250,
+                //   margin: const EdgeInsets.all(15),
+                //   child: file == null
+                //       ? const Center(child: Text('Choose image'))
+                //       : Image.file(file!, fit: BoxFit.fill),
+                // ),
+              ],
             ),
             const SizedBox(height: 15),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  onPressed: chooseImage,
+                  onPressed: loadImage,
                   child: const Text("Choose image (PNG)"),
+                ),
+                ElevatedButton(
+                  onPressed: decodeImage,
+                  child: const Text("Decode"),
                 ),
                 ElevatedButton(
                   onPressed: encodeImage,
                   child: const Text("Encode & save"),
                 ),
               ],
+            ),
+            MessageInput(
+              controller: _messageController,
+              context: context,
+              action: () {},
             ),
           ],
         ),
