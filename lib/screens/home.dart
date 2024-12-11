@@ -28,7 +28,7 @@ class _HomeState extends State<Home> {
       debugPrint('FilePickerResult 1');
       file = File(result.files.single.path!);
       imageBytes = await file!.readAsBytes();
-      steg = ImageSteganography(imageBytes!);
+      steg = ImageSteganography(pngBytes: imageBytes!);
       setState(() {});
     } else {
       debugPrint('FilePickerResult else');
@@ -56,7 +56,7 @@ class _HomeState extends State<Home> {
     if (outputFile != null) {
       // final outputFilePath = outputFile + '.png';
       final outputFilePath = 'images/output-file.png';
-      final png = steg!.getPNG();
+      final png = steg!.png;
       await File(outputFilePath).writeAsBytes(png);
     }
   }
