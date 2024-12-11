@@ -3,7 +3,10 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:steganografy_app/components/message_input.dart';
+import 'package:steganografy_app/components/encryption_toggle.dart';
 import 'package:steganografy_app/steganography.dart';
+import 'package:steganografy_app/utils/constants.dart';
+import 'package:steganografy_app/components/buttons_block.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -13,10 +16,26 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  Uint8List? imageBytes;
-  File? file;
   final _messageController = TextEditingController();
+  final _secretController = TextEditingController();
+  File? file;
   ImageSteganography? steg;
+  int? _messageMaxLength;
+  Uint8List? imageBytes;
+  List<bool> selectedEncryption = [true, false, false];
+
+  void switchEncryptionType(int index, List<bool> selected) {
+    List<bool> temp = [false, false, false];
+    print('index = $index');
+    // temp[index] = true;
+    // selected = temp;
+    selected[0] = false;
+    selected[1] = false;
+    selected[2] = false;
+    selected[index] = !selected[index];
+
+    setState(() {});
+  }
 
   void loadImage() async {
     final result = await FilePicker.platform.pickFiles(
@@ -29,6 +48,7 @@ class _HomeState extends State<Home> {
       file = File(result.files.single.path!);
       imageBytes = await file!.readAsBytes();
       steg = ImageSteganography(pngBytes: imageBytes!);
+
       setState(() {});
     } else {
       debugPrint('FilePickerResult else');
@@ -43,19 +63,18 @@ class _HomeState extends State<Home> {
 
   void encodeImage() async {
     final message = _messageController.text;
+    const outputFilePath = 'images/output-file.png';
 
     // String? outputFile = await FilePicker.platform.saveFile(
     //   dialogTitle: 'Please select an output file:',
     //   fileName: 'output-file.png',
     //   type: FileType.image,
     // );
+    // final outputFilePath = outputFile + '.png';
 
-    await steg!.cloakMessage(message);
-    final outputFile = '';
+    final statusCode = await steg!.cloakMessage(message);
 
-    if (outputFile != null) {
-      // final outputFilePath = outputFile + '.png';
-      final outputFilePath = 'images/output-file.png';
+    if (statusCode == null) {
       final png = steg!.png;
       await File(outputFilePath).writeAsBytes(png);
     }
@@ -72,7 +91,7 @@ class _HomeState extends State<Home> {
     const title = 'Steganografy App';
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primary,
+        backgroundColor: mainColor,
         title: const Text(
           title,
           style: TextStyle(color: Colors.white),
@@ -82,47 +101,44 @@ class _HomeState extends State<Home> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Container(
-                  height: 250,
-                  margin: const EdgeInsets.all(15),
-                  child: file == null
-                      ? const Center(child: Text('Choose image'))
-                      : Image.file(file!, fit: BoxFit.fill),
-                ),
-                // Container(
-                //   height: 250,
-                //   margin: const EdgeInsets.all(15),
-                //   child: file == null
-                //       ? const Center(child: Text('Choose image'))
-                //       : Image.file(file!, fit: BoxFit.fill),
-                // ),
-              ],
+            Container(
+              height: imageHeight,
+              width: imageWidth,
+              margin: const EdgeInsets.all(paddingV),
+              child: file == null
+                  ? const Center(child: Text('Choose image'))
+                  : Image.file(file!, fit: BoxFit.contain),
             ),
-            const SizedBox(height: 15),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: loadImage,
-                  child: const Text("Choose image (PNG)"),
-                ),
-                ElevatedButton(
-                  onPressed: decodeImage,
-                  child: const Text("Decode"),
-                ),
-                ElevatedButton(
-                  onPressed: encodeImage,
-                  child: const Text("Encode & save"),
-                ),
-              ],
+            const Spacer(),
+            ButtonsBlock(
+              load: loadImage,
+              decode: decodeImage,
+              encode: encodeImage,
             ),
-            MessageInput(
+            TextInput(
               controller: _messageController,
+              enable: file == null ? false : true,
+              hintText: 'Message',
+              inputHeight: messageBoxH,
+              isClearButton: true,
+              maxLength: _messageMaxLength,
+              textAlignVertical: TextAlignVertical.top,
+            ),
+            const Text('Additional encryption message?'),
+            EncryptionToggle(
               context: context,
-              action: () {},
+              selectedEncryption: selectedEncryption,
+              enable: file != null,
+              action: switchEncryptionType,
+            ),
+            TextInput(
+              controller: _secretController,
+              enable: file == null ? false : true,
+              hintText: 'Secret',
+              inputHeight: messageBoxH,
+              isClearButton: true,
+              maxLength: 16,
+              maxLines: 1,
             ),
           ],
         ),
@@ -135,3 +151,24 @@ class _HomeState extends State<Home> {
     );
   }
 }
+
+// Row(
+//   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//   children: [
+//     Container(
+//       height: 250,
+//       margin: const EdgeInsets.all(15),
+//       child: file == null
+//           ? const Center(child: Text('Choose image'))
+//           : Image.file(file!, fit: BoxFit.fill),
+//     ),
+//     // Container(
+//     //   height: 250,
+//     //   margin: const EdgeInsets.all(15),
+//     //   child: file == null
+//     //       ? const Center(child: Text('Choose image'))
+//     //       : Image.file(file!, fit: BoxFit.fill),
+//     // ),
+//   ],
+// ),
+// const SizedBox(height: 15),

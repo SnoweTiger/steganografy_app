@@ -1,45 +1,56 @@
 import 'package:flutter/material.dart';
+import 'package:steganografy_app/utils/constants.dart';
 
-class MessageInput extends StatelessWidget {
-  final BuildContext context;
+class TextInput extends StatelessWidget {
+  final bool isClearButton, enable;
+  final double? inputHeight;
+  final int? maxLength;
+  final int? maxLines;
+  final String? hintText;
   final TextEditingController controller;
-  Function action;
+  final TextAlignVertical? textAlignVertical;
 
-  MessageInput({
-    required this.action,
-    required this.context,
+  TextInput({
     required this.controller,
+    this.enable = true,
+    this.hintText,
+    this.inputHeight,
+    this.isClearButton = false,
+    this.maxLength,
+    this.maxLines,
+    this.textAlignVertical,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
-    const rowHeight = 100.0;
-
-    final outlineInputBorder = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-      borderSide: const BorderSide(color: Colors.grey),
-    );
+    bool expands = true;
+    if (maxLines != null) expands = false;
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-      height: rowHeight,
+      margin: symmetricEdgeInsets,
+      height: inputHeight,
       child: TextField(
-        // onChanged: (value) => action(controller.text),
-        textAlignVertical: TextAlignVertical.center,
+        enabled: enable,
         controller: controller,
-        expands: true,
-        maxLines: null,
+        expands: expands,
+        maxLines: maxLines,
+        maxLength: maxLength,
+        textAlignVertical: textAlignVertical,
         decoration: InputDecoration(
-          hintText: 'Message',
-          contentPadding: const EdgeInsets.all(10),
-          focusedBorder: outlineInputBorder,
+          hintText: hintText,
+          contentPadding: const EdgeInsets.all(paddingV),
+          focusedBorder: outlineInputBorderFocused,
+          enabledBorder: outlineInputBorder,
           border: outlineInputBorder,
           hintStyle: const TextStyle(color: Colors.grey),
-          suffixIcon: IconButton(
-            onPressed: () => controller.clear(),
-            icon: const Icon(Icons.clear),
-          ),
+          suffixIcon: !isClearButton
+              ? null
+              : IconButton(
+                  color: borderColor,
+                  icon: const Icon(Icons.clear),
+                  onPressed: () => controller.clear(),
+                ),
         ),
       ),
     );
