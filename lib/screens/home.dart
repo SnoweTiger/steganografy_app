@@ -2,12 +2,13 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' as service;
 import 'package:steganografy_app/components/message_input.dart';
 import 'package:steganografy_app/components/encryption_toggle.dart';
 import 'package:steganografy_app/components/bottom_bar.dart';
 import 'package:steganografy_app/steganography.dart';
 import 'package:steganografy_app/utils/constants.dart';
-// import 'package:steganografy_app/components/buttons_block.dart';
+import 'package:steganografy_app/utils/encrypter.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -22,19 +23,19 @@ class _HomeState extends State<Home> {
   File? file;
   ImageSteganography? steg;
   int? _messageMaxLength;
+  int encryptionType = 0;
   Uint8List? imageBytes;
   List<bool> selectedEncryption = [true, false, false];
   bool decodeEnable = false;
   bool encodeEnable = false;
+  late CustomEncrypter encryter;
 
   void switchEncryptionType(int index, List<bool> selected) {
-    List<bool> temp = [false, false, false];
-    print('index = $index');
+    encryptionType = index;
     selected[0] = false;
     selected[1] = false;
     selected[2] = false;
     selected[index] = !selected[index];
-
     setState(() {});
   }
 
@@ -45,16 +46,13 @@ class _HomeState extends State<Home> {
     );
 
     if (result != null) {
-      debugPrint('FilePickerResult 1');
       file = File(result.files.single.path!);
-
       if (file != null) {
         imageBytes = await file!.readAsBytes();
         steg = ImageSteganography(pngBytes: imageBytes!);
         decodeEnable = true;
         encodeEnable = true;
       }
-
       setState(() {});
     } else {
       debugPrint('FilePickerResult else');
@@ -68,15 +66,21 @@ class _HomeState extends State<Home> {
   }
 
   void encodeImage() async {
-    final message = _messageController.text;
-    const outputFilePath = 'images/output-file.png';
+    String message = _messageController.text;
+    final outputFilePath = '${file!.path.split('.')[0]}-updated.png';
 
-    // String? outputFile = await FilePicker.platform.saveFile(
-    //   dialogTitle: 'Please select an output file:',
-    //   fileName: 'output-file.png',
-    //   type: FileType.image,
-    // );
-    // final outputFilePath = outputFile + '.png';
+    switch (encryptionType) {
+      case 1:
+        print('secret ${_secretController.text}');
+        final message2 = encryter.aes(message, _secretController.text);
+        print('message2 = $message2');
+
+        message = message + '1';
+      case 2:
+        message = message + '2';
+    }
+
+    print(message);
 
     final statusCode = await steg!.cloakMessage(message);
 
@@ -88,9 +92,9 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
+    encryter = CustomEncrypter();
     decodeEnable = false;
     encodeEnable = false;
-    // TODO: implement initState
     super.initState();
   }
 
@@ -143,12 +147,20 @@ class _HomeState extends State<Home> {
           ),
           TextInput(
             controller: _secretController,
-            enable: file == null ? false : true,
+            enable: (file != null && [1, 2].contains(encryptionType))
+                ? true
+                : false,
             hintText: 'Secret',
             inputHeight: messageBoxH,
             isClearButton: true,
-            maxLength: 16,
+            maxLength: secretLength,
             maxLines: 1,
+            padRightEnable: true,
+            inputFormatters: [
+              service.FilteringTextInputFormatter.allow(
+                RegExp('[a-z A-Z 0-9]'),
+              ),
+            ],
           ),
         ],
       ),

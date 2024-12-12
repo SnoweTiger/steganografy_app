@@ -9,6 +9,7 @@ const paddingH = 30.0;
 const paddingV = 8.0;
 const windowsWidth = 600.0;
 const windowsHeight = 800.0;
+const int secretLength = 32;
 
 // Colors
 const borderColor = Colors.grey;

@@ -13,6 +13,7 @@ dependencies:
   conversion: ^1.0.0+1
   file_picker: ^8.1.4
   window_manager: ^0.4.3
+  encrypt: ^5.0.3
   # window_size:
   #   git:
   #     url: https://github.com/google/flutter-desktop-embedding.git
