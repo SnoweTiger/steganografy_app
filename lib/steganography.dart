@@ -24,8 +24,8 @@ class ImageSteganography {
     int imageChannels = 4,
     int usedChannels = 3,
   }) {
-    // final image = decodeImage(pngBytes);
-    final image = decodePng(pngBytes);
+    final image = decodeImage(pngBytes);
+    // final image = decodePng(pngBytes);
 
     if (image == null) {
       throw Exception('Image format not supported');

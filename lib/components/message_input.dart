@@ -39,7 +39,6 @@ class TextInput extends StatelessWidget {
         textAlignVertical: textAlignVertical,
         decoration: InputDecoration(
           hintText: hintText,
-          contentPadding: const EdgeInsets.all(paddingV),
           focusedBorder: outlineInputBorderFocused,
           enabledBorder: outlineInputBorder,
           border: outlineInputBorder,

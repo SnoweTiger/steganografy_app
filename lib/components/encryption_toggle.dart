@@ -27,11 +27,12 @@ class EncryptionToggle extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(paddingV),
+      margin: EdgeInsets.zero,
       child: ToggleButtons(
         constraints: constraints,
         onPressed:
             !enable ? null : (int index) => action(index, selectedEncryption),
-        borderRadius: borderRadiusAll,
+        borderRadius: const BorderRadius.all(Radius.circular(borderRadius)),
         borderColor: borderColor,
         fillColor: selectedColorBack,
         isSelected: selectedEncryption,
