@@ -4,9 +4,10 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:steganografy_app/components/message_input.dart';
 import 'package:steganografy_app/components/encryption_toggle.dart';
+import 'package:steganografy_app/components/bottom_bar.dart';
 import 'package:steganografy_app/steganography.dart';
 import 'package:steganografy_app/utils/constants.dart';
-import 'package:steganografy_app/components/buttons_block.dart';
+// import 'package:steganografy_app/components/buttons_block.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -23,12 +24,12 @@ class _HomeState extends State<Home> {
   int? _messageMaxLength;
   Uint8List? imageBytes;
   List<bool> selectedEncryption = [true, false, false];
+  bool decodeEnable = false;
+  bool encodeEnable = false;
 
   void switchEncryptionType(int index, List<bool> selected) {
     List<bool> temp = [false, false, false];
     print('index = $index');
-    // temp[index] = true;
-    // selected = temp;
     selected[0] = false;
     selected[1] = false;
     selected[2] = false;
@@ -46,8 +47,13 @@ class _HomeState extends State<Home> {
     if (result != null) {
       debugPrint('FilePickerResult 1');
       file = File(result.files.single.path!);
-      imageBytes = await file!.readAsBytes();
-      steg = ImageSteganography(pngBytes: imageBytes!);
+
+      if (file != null) {
+        imageBytes = await file!.readAsBytes();
+        steg = ImageSteganography(pngBytes: imageBytes!);
+        decodeEnable = true;
+        encodeEnable = true;
+      }
 
       setState(() {});
     } else {
@@ -81,6 +87,14 @@ class _HomeState extends State<Home> {
   }
 
   @override
+  void initState() {
+    decodeEnable = false;
+    encodeEnable = false;
+    // TODO: implement initState
+    super.initState();
+  }
+
+  @override
   void dispose() {
     _messageController.dispose();
     super.dispose();
@@ -90,6 +104,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     const title = 'Steganografy App';
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: mainColor,
         title: const Text(
@@ -97,78 +112,53 @@ class _HomeState extends State<Home> {
           style: TextStyle(color: Colors.white),
         ),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Container(
-              height: imageHeight,
-              width: imageWidth,
-              margin: const EdgeInsets.all(paddingV),
-              child: file == null
-                  ? const Center(child: Text('Choose image'))
-                  : Image.file(file!, fit: BoxFit.contain),
-            ),
-            const Spacer(),
-            ButtonsBlock(
-              load: loadImage,
-              decode: decodeImage,
-              encode: encodeImage,
-            ),
-            TextInput(
-              controller: _messageController,
-              enable: file == null ? false : true,
-              hintText: 'Message',
-              inputHeight: messageBoxH,
-              isClearButton: true,
-              maxLength: _messageMaxLength,
-              textAlignVertical: TextAlignVertical.top,
-            ),
-            const Text('Additional encryption message?'),
-            EncryptionToggle(
-              context: context,
-              selectedEncryption: selectedEncryption,
-              enable: file != null,
-              action: switchEncryptionType,
-            ),
-            TextInput(
-              controller: _secretController,
-              enable: file == null ? false : true,
-              hintText: 'Secret',
-              inputHeight: messageBoxH,
-              isClearButton: true,
-              maxLength: 16,
-              maxLines: 1,
-            ),
-          ],
-        ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          Container(
+            height: imageHeight,
+            width: imageWidth,
+            margin: symmetricEdgeInsets,
+            padding: EdgeInsets.zero,
+            child: file == null
+                ? const Center(child: Text('Choose image'))
+                : Image.file(file!, fit: BoxFit.contain),
+          ),
+          const Spacer(),
+          TextInput(
+            controller: _messageController,
+            enable: file == null ? false : true,
+            hintText: 'Message',
+            inputHeight: messageBoxH,
+            isClearButton: true,
+            maxLength: _messageMaxLength,
+            textAlignVertical: TextAlignVertical.top,
+          ),
+          const Text('Additional encryption message?'),
+          EncryptionToggle(
+            context: context,
+            selectedEncryption: selectedEncryption,
+            enable: file != null,
+            action: switchEncryptionType,
+          ),
+          TextInput(
+            controller: _secretController,
+            enable: file == null ? false : true,
+            hintText: 'Secret',
+            inputHeight: messageBoxH,
+            isClearButton: true,
+            maxLength: 16,
+            maxLines: 1,
+          ),
+        ],
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: _incrementCounter,
-      //   tooltip: 'Increment',
-      //   child: const Icon(Icons.add),
-      // ),
+      bottomNavigationBar: BottomBar(
+        loadImage: loadImage,
+        decodeImage: decodeImage,
+        encodeImage: encodeImage,
+        decodeEnable: decodeEnable,
+        encodeEnable: encodeEnable,
+      ),
     );
   }
 }
-
-// Row(
-//   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-//   children: [
-//     Container(
-//       height: 250,
-//       margin: const EdgeInsets.all(15),
-//       child: file == null
-//           ? const Center(child: Text('Choose image'))
-//           : Image.file(file!, fit: BoxFit.fill),
-//     ),
-//     // Container(
-//     //   height: 250,
-//     //   margin: const EdgeInsets.all(15),
-//     //   child: file == null
-//     //       ? const Center(child: Text('Choose image'))
-//     //       : Image.file(file!, fit: BoxFit.fill),
-//     // ),
-//   ],
-// ),
-// const SizedBox(height: 15),
