@@ -2,13 +2,9 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-// import 'package:flutter/services.dart' as service;
-import 'package:steganografy_app/components/bottom_bar.dart';
-import 'package:steganografy_app/components/encryption_toggle.dart';
-import 'package:steganografy_app/components/message_input.dart';
+import 'package:steganografy_app/components/all.dart';
 import 'package:steganografy_app/steganography.dart';
-import 'package:steganografy_app/utils/constants.dart';
-import 'package:steganografy_app/utils/encrypter.dart';
+import 'package:steganografy_app/utils/all.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -26,7 +22,6 @@ class _HomeState extends State<Home> {
   File? file;
   ImageSteganography? steg;
   int encryptionType = 0;
-  int? _messageMaxLength = 32;
   List<bool> selectedEncryption = [true, false, false];
   Uint8List? imageBytes;
 
@@ -49,6 +44,7 @@ class _HomeState extends State<Home> {
     selected[1] = false;
     selected[2] = false;
     selected[index] = !selected[index];
+    encodeEnable = encodeAvailable();
     setState(() {});
   }
 
@@ -57,44 +53,69 @@ class _HomeState extends State<Home> {
     setState(() {});
   }
 
+  void raiseNotification(
+    BuildContext context,
+    String notification, [
+    bool error = false,
+  ]) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showMessage(context, notification, error);
+    });
+  }
+
   void loadImage() async {
     final result = await FilePicker.platform.pickFiles(
       allowMultiple: false,
       type: FileType.image,
     );
+    if (result == null) return;
 
-    if (result != null) {
+    try {
       file = File(result.files.single.path!);
-      if (file != null) {
-        imageBytes = await file!.readAsBytes();
-        steg = ImageSteganography(pngBytes: imageBytes!);
-        decodeEnable = true;
-
-        _messageMaxLength = 100;
-
-        encodeEnable = encodeAvailable();
-      }
-      setState(() {});
-    } else {
-      debugPrint('FilePickerResult else');
+      if (file == null) throw Exception('');
+      imageBytes = await file!.readAsBytes();
+      steg = ImageSteganography(pngBytes: imageBytes!);
+    } catch (e) {
+      const notification = 'Error: read file';
+      debugPrint(notification);
+      showMessage(context, notification, true);
+      return;
     }
+
+    decodeEnable = true;
+    encodeEnable = encodeAvailable();
+    setState(() {});
+    final notification =
+        'Loaded image-${steg!.image.width}x${steg!.image.height}x3\npixels=${steg!.image.width * steg!.image.height}\nmax utf-32 chars = ${steg!.maxChars}';
+    debugPrint(notification);
+    raiseNotification(context, notification);
   }
 
   void decodeImage() async {
     String? messageFromImage = await steg!.getMessage();
-    print(messageFromImage);
+    if (messageFromImage == null) {
+      raiseNotification(context, 'Error: Message not found', true);
+      return;
+    }
 
     switch (encryptionType) {
       case 1:
-        messageFromImage =
-            encryter.decryptAES(messageFromImage, _secretController.text);
+        messageFromImage = encryter.decryptAES(
+          messageFromImage,
+          _secretController.text,
+        );
       case 2:
-        messageFromImage =
-            encryter.decryptSalsa(messageFromImage, _secretController.text);
+        messageFromImage = encryter.decryptSalsa(
+          messageFromImage,
+          _secretController.text,
+        );
+    }
+    if (messageFromImage == null) {
+      raiseNotification(context, 'Error decrypt message', true);
+      return;
     }
 
-    _messageController.text =
-        messageFromImage ?? 'Error decryption. Check Type and key';
+    _messageController.text = messageFromImage;
     setState(() {});
   }
 
@@ -108,17 +129,26 @@ class _HomeState extends State<Home> {
       case 2:
         message = encryter.encryptSalsa(message, _secretController.text);
     }
+    if (message == null) {
+      raiseNotification(context, 'Error: encrypt message', true);
+      return;
+    }
 
-    debugPrint('message = $message');
-
-    if (message != null && message.isNotEmpty) {
+    if (message.length <= steg!.maxChars) {
       final statusCode = await steg!.cloakMessage(message);
       if (statusCode == null) {
         final png = steg!.png;
         await File(outputFilePath).writeAsBytes(png);
+
+        String notification = 'Image encoded.\n ${File(outputFilePath).path}';
+        debugPrint(notification);
+        raiseNotification(context, notification);
       }
     } else {
-      debugPrint('Error encryptyon: message = $message');
+      final String notification =
+          'Error: max chars ${steg!.maxChars}, message chars ${message.length}(after encryption)';
+      debugPrint(notification);
+      raiseNotification(context, notification, true);
     }
   }
 
@@ -158,7 +188,11 @@ class _HomeState extends State<Home> {
             padding: EdgeInsets.zero,
             child: file == null
                 ? const Center(child: Text('Choose image'))
-                : Image.file(file!, fit: BoxFit.contain),
+                : Image.file(
+                    file!,
+                    fit: BoxFit.scaleDown,
+                    // fit: BoxFit.contain,
+                  ),
           ),
           const Spacer(),
           TextInput(
@@ -168,8 +202,8 @@ class _HomeState extends State<Home> {
             hintText: 'Message',
             inputHeight: messageBoxH,
             isClearButton: true,
-            // maxLength: _messageMaxLength,
             textAlignVertical: TextAlignVertical.top,
+            onUpdate: onSecretUpdate,
           ),
           const Text('Additional encryption message?'),
           EncryptionToggle(

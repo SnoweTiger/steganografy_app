@@ -100,13 +100,15 @@ class ImageSteganography {
     return frame;
   }
 
-  Future<String> getMessage() async {
+  Future<String?> getMessage() async {
     final messageBinary = await _extractString(_image);
+    if (messageBinary == null) return null;
     final message = _decodeMessage(messageBinary);
+    if (message == null) return null;
     return message;
   }
 
-  Future<String> _extractString(Image frame) async {
+  Future<String?> _extractString(Image frame) async {
     bool endTagFound = false;
     bool startTagFound = false;
     List<int> intColors;
@@ -144,21 +146,27 @@ class ImageSteganography {
 
       final messageLength = messageBinary.length - _tagBinary.length;
       messageBinary = messageBinary.substring(0, messageLength);
-      print('messageBinary = $messageBinary');
+      // print('messageBinary = $messageBinary');
     } catch (e) {
-      throw Exception('Error restore message: $e');
+      return null;
+      // throw Exception('Error restore message: $e');
+    }
+
+    if (!endTagFound) {
+      return null;
     }
     return messageBinary;
   }
 
-  String _decodeMessage(String messageBinary) {
+  String? _decodeMessage(String messageBinary) {
     String message = '';
     try {
       final split = messageBinary.splitByLength(_charLength);
       final splitDecimal = convert.binaryTodecimal(values: split);
       message = utf8.decode(splitDecimal);
     } catch (e) {
-      throw Exception('Error decode message: $e');
+      // throw Exception('Error decode message: $e');
+      return null;
     }
     return message;
   }
