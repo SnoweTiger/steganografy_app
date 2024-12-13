@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:steganografy_app/utils/constants.dart';
 import 'package:steganografy_app/components/custom_button.dart';
+import 'package:steganografy_app/generated/l10n.dart';
+import 'package:steganografy_app/utils/constants.dart';
 
 class BottomBar extends StatelessWidget {
   Function loadImage;
@@ -24,20 +25,20 @@ class BottomBar extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         CustomButton(
-          title: 'Load image',
+          title: S.of(context).loadImage,
           action: loadImage,
           paddingL: paddingH,
           paddingR: paddingH / 2,
         ),
         CustomButton(
-          title: 'Decode',
+          title: S.of(context).decode,
           action: decodeImage,
           paddingL: paddingH / 2,
           paddingR: paddingH / 2,
           disabled: !decodeEnable,
         ),
         CustomButton(
-          title: 'Encode & save',
+          title: S.of(context).encodeSave,
           action: encodeImage,
           paddingL: paddingH / 2,
           paddingR: paddingH,

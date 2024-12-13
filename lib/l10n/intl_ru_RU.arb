@@ -1,0 +1,11 @@
+{
+  "title": "Стеганография",
+  "additionalEncryptionMessage": "Дополнительное шифрование?",
+  "message": "Сообщение",
+  "chooseImage": "Откройте изображение",
+  "secrethint": "32 символа (A-z0-9@#$%&)",
+  "noEncryption": "Без шифрования",
+  "loadImage": "Открыть",
+  "decode": "Декодировать",
+  "encodeSave": "Закодировать и записать"
+}

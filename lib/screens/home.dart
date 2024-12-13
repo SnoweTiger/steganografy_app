@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:steganografy_app/components/all.dart';
+import 'package:steganografy_app/generated/l10n.dart';
 import 'package:steganografy_app/steganography.dart';
 import 'package:steganografy_app/utils/all.dart';
 
@@ -125,9 +126,15 @@ class _HomeState extends State<Home> {
 
     switch (encryptionType) {
       case 1:
-        message = encryter.encryptAES(message, _secretController.text);
+        message = encryter.encryptAES(
+          message,
+          _secretController.text,
+        );
       case 2:
-        message = encryter.encryptSalsa(message, _secretController.text);
+        message = encryter.encryptSalsa(
+          message,
+          _secretController.text,
+        );
     }
     if (message == null) {
       raiseNotification(context, 'Error: encrypt message', true);
@@ -168,14 +175,13 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    const title = 'Steganografy App';
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: mainColor,
-        title: const Text(
-          title,
-          style: TextStyle(color: Colors.white),
+        title: Text(
+          S.of(context).title,
+          style: const TextStyle(color: Colors.white),
         ),
       ),
       body: Column(
@@ -187,7 +193,7 @@ class _HomeState extends State<Home> {
             margin: symmetricEdgeInsets,
             padding: EdgeInsets.zero,
             child: file == null
-                ? const Center(child: Text('Choose image'))
+                ? Center(child: Text(S.of(context).chooseImage))
                 : Image.file(
                     file!,
                     fit: BoxFit.scaleDown,
@@ -199,13 +205,13 @@ class _HomeState extends State<Home> {
             controller: _messageController,
             enable: file == null ? false : true,
             expands: true,
-            hintText: 'Message',
+            hintText: S.of(context).message,
             inputHeight: messageBoxH,
             isClearButton: true,
             textAlignVertical: TextAlignVertical.top,
             onUpdate: onSecretUpdate,
           ),
-          const Text('Additional encryption message?'),
+          Text(S.of(context).additionalEncryptionMessage),
           EncryptionToggle(
             context: context,
             selectedEncryption: selectedEncryption,
@@ -217,7 +223,7 @@ class _HomeState extends State<Home> {
             enable: (file != null && [1, 2].contains(encryptionType))
                 ? true
                 : false,
-            hintText: 'Secret',
+            hintText: S.of(context).secrethint,
             inputFormatters: secretInputFormatter,
             inputHeight: messageBoxH,
             isClearButton: true,

@@ -1,0 +1,11 @@
+{
+  "title": "Steganografy App",
+  "additionalEncryptionMessage": "Additional encryption message?",
+  "message": "Message",
+  "chooseImage": "Choose image",
+  "secrethint": "32 chars A-z0-9@#$%&",
+  "noEncryption": "No encryption",
+  "loadImage": "Load image",
+  "decode": "Decode",
+  "encodeSave": "Encode & save"
+}

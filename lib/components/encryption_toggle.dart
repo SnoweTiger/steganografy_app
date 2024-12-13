@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:steganografy_app/utils/constants.dart';
+import 'package:steganografy_app/generated/l10n.dart';
 
 class EncryptionToggle extends StatelessWidget {
   final BuildContext context;
@@ -47,7 +48,7 @@ List<Widget> encryptionToggleWidgets(BuildContext context) {
   List<Widget> tmp = [];
 
   List<String> encryptionTypes(BuildContext context) => [
-        'No encryption',
+        S.of(context).noEncryption,
         'AES',
         'Salsa',
       ];

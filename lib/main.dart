@@ -1,7 +1,9 @@
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:window_manager/window_manager.dart';
+import 'package:steganografy_app/generated/l10n.dart';
 import 'package:steganografy_app/screens/home.dart';
 import 'package:steganografy_app/utils/constants.dart';
-import 'package:window_manager/window_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +29,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      localizationsDelegates: const [
+        S.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      // locale: Locale('en'),
+      supportedLocales: S.delegate.supportedLocales,
       title: 'Steganografy App',
       home: const Home(),
     );
