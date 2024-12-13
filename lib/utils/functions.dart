@@ -16,7 +16,8 @@ void showMessage(
       margin: EdgeInsets.only(
         left: paddingH,
         right: paddingH,
-        bottom: MediaQuery.of(context).size.height - 200,
+        bottom: MediaQuery.of(context).size.height -
+            0.3 * MediaQuery.of(context).size.height,
       ),
       duration: Duration(seconds: delay),
       backgroundColor: backgroundColor,
