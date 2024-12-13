@@ -3,14 +3,14 @@ import 'package:steganografy_app/utils/constants.dart';
 import 'package:flutter/services.dart';
 
 class TextInput extends StatelessWidget {
-  final bool isClearButton, enable, padRightEnable;
+  final bool isClearButton, enable, expands;
   final double? inputHeight;
   final int? maxLength;
-  final int? maxLines;
-  final String? hintText;
+  final String? hintText, fillByChar;
   final TextEditingController controller;
   final TextAlignVertical? textAlignVertical;
   final List<TextInputFormatter>? inputFormatters;
+  Function(String)? onUpdate;
 
   TextInput({
     required this.controller,
@@ -19,21 +19,25 @@ class TextInput extends StatelessWidget {
     this.inputHeight,
     this.isClearButton = false,
     this.maxLength,
-    this.maxLines,
+    this.expands = false,
+    // this.maxLines,
     this.textAlignVertical,
     this.inputFormatters,
-    this.padRightEnable = false,
+    this.fillByChar,
+    this.onUpdate,
     super.key,
   });
 
   void onTapOutside(PointerDownEvent event) {
-    controller.text = controller.text.padRight(32, '0');
+    controller.text = controller.text.padRight(32, fillByChar!);
   }
 
   @override
   Widget build(BuildContext context) {
-    bool expands = true;
-    if (maxLines != null) expands = false;
+    int? maxLines = 1;
+    if (expands) {
+      maxLines = null;
+    }
 
     return Container(
       margin: symmetricEdgeInsets,
@@ -46,7 +50,8 @@ class TextInput extends StatelessWidget {
         maxLines: maxLines,
         maxLength: maxLength,
         textAlignVertical: textAlignVertical,
-        onTapOutside: padRightEnable ? onTapOutside : null,
+        onTapOutside: fillByChar != null ? onTapOutside : null,
+        onChanged: onUpdate,
         decoration: InputDecoration(
           hintText: hintText,
           focusedBorder: outlineInputBorderFocused,

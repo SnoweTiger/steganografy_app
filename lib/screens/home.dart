@@ -2,10 +2,10 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' as service;
-import 'package:steganografy_app/components/message_input.dart';
-import 'package:steganografy_app/components/encryption_toggle.dart';
+// import 'package:flutter/services.dart' as service;
 import 'package:steganografy_app/components/bottom_bar.dart';
+import 'package:steganografy_app/components/encryption_toggle.dart';
+import 'package:steganografy_app/components/message_input.dart';
 import 'package:steganografy_app/steganography.dart';
 import 'package:steganografy_app/utils/constants.dart';
 import 'package:steganografy_app/utils/encrypter.dart';
@@ -20,15 +20,28 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final _messageController = TextEditingController();
   final _secretController = TextEditingController();
-  File? file;
-  ImageSteganography? steg;
-  int? _messageMaxLength;
-  int encryptionType = 0;
-  Uint8List? imageBytes;
-  List<bool> selectedEncryption = [true, false, false];
+  late CustomEncrypter encryter;
   bool decodeEnable = false;
   bool encodeEnable = false;
-  late CustomEncrypter encryter;
+  File? file;
+  ImageSteganography? steg;
+  int encryptionType = 0;
+  int? _messageMaxLength = 32;
+  List<bool> selectedEncryption = [true, false, false];
+  Uint8List? imageBytes;
+
+  bool encodeAvailable() {
+    bool encodeAvailable;
+
+    if (_messageController.text.isNotEmpty &&
+        (encryptionType == 0 || _secretController.text.isNotEmpty)) {
+      encodeAvailable = true;
+    } else {
+      encodeAvailable = false;
+    }
+
+    return encodeAvailable;
+  }
 
   void switchEncryptionType(int index, List<bool> selected) {
     encryptionType = index;
@@ -36,6 +49,11 @@ class _HomeState extends State<Home> {
     selected[1] = false;
     selected[2] = false;
     selected[index] = !selected[index];
+    setState(() {});
+  }
+
+  void onSecretUpdate(String text) {
+    encodeEnable = encodeAvailable();
     setState(() {});
   }
 
@@ -51,7 +69,10 @@ class _HomeState extends State<Home> {
         imageBytes = await file!.readAsBytes();
         steg = ImageSteganography(pngBytes: imageBytes!);
         decodeEnable = true;
-        encodeEnable = true;
+
+        _messageMaxLength = 100;
+
+        encodeEnable = encodeAvailable();
       }
       setState(() {});
     } else {
@@ -60,33 +81,44 @@ class _HomeState extends State<Home> {
   }
 
   void decodeImage() async {
-    final message = await steg!.getMessage();
-    _messageController.text = message;
+    String? messageFromImage = await steg!.getMessage();
+    print(messageFromImage);
+
+    switch (encryptionType) {
+      case 1:
+        messageFromImage =
+            encryter.decryptAES(messageFromImage, _secretController.text);
+      case 2:
+        messageFromImage =
+            encryter.decryptSalsa(messageFromImage, _secretController.text);
+    }
+
+    _messageController.text =
+        messageFromImage ?? 'Error decryption. Check Type and key';
     setState(() {});
   }
 
   void encodeImage() async {
-    String message = _messageController.text;
+    String? message = _messageController.text;
     final outputFilePath = '${file!.path.split('.')[0]}-updated.png';
 
     switch (encryptionType) {
       case 1:
-        print('secret ${_secretController.text}');
-        final message2 = encryter.aes(message, _secretController.text);
-        print('message2 = $message2');
-
-        message = message + '1';
+        message = encryter.encryptAES(message, _secretController.text);
       case 2:
-        message = message + '2';
+        message = encryter.encryptSalsa(message, _secretController.text);
     }
 
-    print(message);
+    debugPrint('message = $message');
 
-    final statusCode = await steg!.cloakMessage(message);
-
-    if (statusCode == null) {
-      final png = steg!.png;
-      await File(outputFilePath).writeAsBytes(png);
+    if (message != null && message.isNotEmpty) {
+      final statusCode = await steg!.cloakMessage(message);
+      if (statusCode == null) {
+        final png = steg!.png;
+        await File(outputFilePath).writeAsBytes(png);
+      }
+    } else {
+      debugPrint('Error encryptyon: message = $message');
     }
   }
 
@@ -132,10 +164,11 @@ class _HomeState extends State<Home> {
           TextInput(
             controller: _messageController,
             enable: file == null ? false : true,
+            expands: true,
             hintText: 'Message',
             inputHeight: messageBoxH,
             isClearButton: true,
-            maxLength: _messageMaxLength,
+            // maxLength: _messageMaxLength,
             textAlignVertical: TextAlignVertical.top,
           ),
           const Text('Additional encryption message?'),
@@ -151,16 +184,12 @@ class _HomeState extends State<Home> {
                 ? true
                 : false,
             hintText: 'Secret',
+            inputFormatters: secretInputFormatter,
             inputHeight: messageBoxH,
             isClearButton: true,
             maxLength: secretLength,
-            maxLines: 1,
-            padRightEnable: true,
-            inputFormatters: [
-              service.FilteringTextInputFormatter.allow(
-                RegExp('[a-z A-Z 0-9]'),
-              ),
-            ],
+            fillByChar: 'X',
+            onUpdate: onSecretUpdate,
           ),
         ],
       ),
