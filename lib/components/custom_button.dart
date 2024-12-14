@@ -26,10 +26,12 @@ class CustomButton extends StatelessWidget {
             top: paddingV,
             bottom: paddingV,
           ),
+          padding: EdgeInsets.zero,
           child: ElevatedButton(
             onPressed: disabled ? null : () => action(),
             style: ElevatedButton.styleFrom(
-              // alignment: Alignment.center,
+              alignment: Alignment.center,
+              padding: EdgeInsets.zero,
               elevation: 5,
               backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(

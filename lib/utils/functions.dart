@@ -13,11 +13,12 @@ void showMessage(
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       behavior: SnackBarBehavior.floating,
-      margin: EdgeInsets.only(
+      // padding: EdgeInsets.zero,
+      margin: const EdgeInsets.only(
         left: paddingH,
         right: paddingH,
-        bottom: MediaQuery.of(context).size.height -
-            0.3 * MediaQuery.of(context).size.height,
+        bottom: paddingV,
+        // bottom: MediaQuery.of(context).size.height - 0.3 * MediaQuery.of(context).size.height,
       ),
       duration: Duration(seconds: delay),
       backgroundColor: backgroundColor,
@@ -27,23 +28,35 @@ void showMessage(
         side: BorderSide(color: textColor),
         borderRadius: BorderRadius.circular(borderRadius),
       ),
-      content: Row(
-        children: [
-          !isError
-              ? const Text('')
-              : Icon(Icons.error_outline, color: textColor),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Expanded(
+      content: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          children: [
+            !isError
+                ? const Text('')
+                : Icon(Icons.error_outline, color: textColor),
+            Expanded(
               child: Text(
                 text,
                 overflow: TextOverflow.clip,
                 softWrap: true,
                 style: TextStyle(color: textColor),
               ),
-            ),
-          ),
-        ],
+            )
+            // Padding(
+            //   padding: const EdgeInsets.all(5.0),
+            //   child: Expanded(
+            //     child: Text(
+            //       text,
+            //       overflow: TextOverflow.clip,
+            //       softWrap: true,
+            //       // softWrap: false,
+            //       style: TextStyle(color: textColor),
+            //     ),
+            //   ),
+            // ),
+          ],
+        ),
       ),
     ),
   );

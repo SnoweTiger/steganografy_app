@@ -7,6 +7,10 @@ class CustomEncrypter {
     iv = IV.fromSecureRandom(8);
   }
 
+  CustomEncrypter.fromPublicKey(String text) {
+    iv = IV.fromUtf8(text);
+  }
+
   String? encryptAES(String text, String secret) {
     final key = Key.fromUtf8(secret);
     return _encrypt(text, AES(key));

@@ -66,14 +66,15 @@ class _HomeState extends State<Home> {
 
   void loadImage() async {
     final result = await FilePicker.platform.pickFiles(
-      allowMultiple: false,
-      type: FileType.image,
-    );
+        allowMultiple: false,
+        type: FileType.custom,
+        allowedExtensions: ['png', 'jpg']);
     if (result == null) return;
 
     try {
       file = File(result.files.single.path!);
       if (file == null) throw Exception('');
+
       imageBytes = await file!.readAsBytes();
       steg = ImageSteganography(pngBytes: imageBytes!);
     } catch (e) {
@@ -86,8 +87,9 @@ class _HomeState extends State<Home> {
     decodeEnable = true;
     encodeEnable = encodeAvailable();
     setState(() {});
+
     final notification =
-        'Loaded image-${steg!.image.width}x${steg!.image.height}x3\npixels=${steg!.image.width * steg!.image.height}\nmax utf-32 chars = ${steg!.maxChars}';
+        'Loaded image.\nsize=${steg!.image.width}x${steg!.image.height}x3\npixels=${steg!.image.width * steg!.image.height}\nmax utf-32 chars = ${steg!.maxChars}';
     debugPrint(notification);
     raiseNotification(context, notification);
   }
@@ -122,46 +124,70 @@ class _HomeState extends State<Home> {
 
   void encodeImage() async {
     String? message = _messageController.text;
-    final outputFilePath = '${file!.path.split('.')[0]}-updated.png';
 
-    switch (encryptionType) {
-      case 1:
-        message = encryter.encryptAES(
-          message,
-          _secretController.text,
-        );
-      case 2:
-        message = encryter.encryptSalsa(
-          message,
-          _secretController.text,
-        );
-    }
-    if (message == null) {
-      raiseNotification(context, 'Error: encrypt message', true);
-      return;
-    }
-
-    if (message.length <= steg!.maxChars) {
-      final statusCode = await steg!.cloakMessage(message);
-      if (statusCode == null) {
-        final png = steg!.png;
-        await File(outputFilePath).writeAsBytes(png);
-
-        String notification = 'Image encoded.\n ${File(outputFilePath).path}';
-        debugPrint(notification);
-        raiseNotification(context, notification);
+    // Encrypt message
+    if (encryptionType != 0) {
+      final secret = _secretController.text.padRight(32, 'x');
+      switch (encryptionType) {
+        case 1:
+          message = encryter.encryptAES(message, secret);
+        case 2:
+          message = encryter.encryptSalsa(message, secret);
       }
-    } else {
+      if (message == null) {
+        raiseNotification(context, 'Error: at encryption message', true);
+        return;
+      }
+    }
+
+    // Check message length
+    if (message.length > steg!.maxChars) {
       final String notification =
           'Error: max chars ${steg!.maxChars}, message chars ${message.length}(after encryption)';
       debugPrint(notification);
       raiseNotification(context, notification, true);
+      return;
     }
+
+    // Cloak message
+    final statusCode = await steg!.cloakMessage(message);
+    if (statusCode != null) {
+      final notification = 'Error: cloak message.';
+      debugPrint(notification);
+      raiseNotification(context, notification, true);
+      return;
+    }
+
+    // Write file
+    final png = steg!.png;
+    final String notificationWrite;
+    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+      final outputFilePath = '${file!.path.split('.')[0]}-updated.png';
+      await File(outputFilePath).writeAsBytes(png);
+      notificationWrite = 'Image encoded.\n${File(outputFilePath).path}';
+    } else {
+      String? result = await FilePicker.platform.saveFile(
+        dialogTitle: S.of(context).pleaseSelectAnOutputFile,
+        fileName: 'image-updated.png',
+        bytes: png,
+        type: FileType.image,
+      );
+      if (result == null) {
+        const notification = 'Error: Write file.';
+        debugPrint(notification);
+        raiseNotification(context, notification, true);
+        return;
+      }
+      notificationWrite = 'Image encoded.\n $result';
+    }
+    debugPrint(notificationWrite);
+    raiseNotification(context, notificationWrite);
   }
 
   @override
   void initState() {
-    encryter = CustomEncrypter();
+    // encryter = CustomEncrypter();
+    encryter = CustomEncrypter.fromPublicKey('texttext');
     decodeEnable = false;
     encodeEnable = false;
     super.initState();
@@ -170,6 +196,7 @@ class _HomeState extends State<Home> {
   @override
   void dispose() {
     _messageController.dispose();
+    _secretController.dispose();
     super.dispose();
   }
 
@@ -228,11 +255,12 @@ class _HomeState extends State<Home> {
             inputHeight: messageBoxH,
             isClearButton: true,
             maxLength: secretLength,
-            fillByChar: 'X',
+            // fillByChar: 'X',
             onUpdate: onSecretUpdate,
           ),
         ],
       ),
+      resizeToAvoidBottomInset: false,
       bottomNavigationBar: BottomBar(
         loadImage: loadImage,
         decodeImage: decodeImage,
