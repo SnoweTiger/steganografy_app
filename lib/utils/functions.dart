@@ -5,7 +5,7 @@ void showMessage(
   BuildContext context,
   String text, [
   bool isError = false,
-  int delay = 5,
+  int delay = 3,
 ]) {
   final Color backgroundColor = isError ? Colors.red : Colors.white;
   final Color textColor = isError ? Colors.white : Colors.green;
@@ -13,12 +13,11 @@ void showMessage(
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       behavior: SnackBarBehavior.floating,
-      // padding: EdgeInsets.zero,
-      margin: const EdgeInsets.only(
+      margin: EdgeInsets.only(
         left: paddingH,
         right: paddingH,
-        bottom: paddingV,
-        // bottom: MediaQuery.of(context).size.height - 0.3 * MediaQuery.of(context).size.height,
+        // bottom: paddingV,
+        bottom: 0.5 * MediaQuery.of(context).size.height,
       ),
       duration: Duration(seconds: delay),
       backgroundColor: backgroundColor,

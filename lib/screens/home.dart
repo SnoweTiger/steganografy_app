@@ -21,6 +21,7 @@ class _HomeState extends State<Home> {
   late List<bool> selectedEncryption;
   bool decodeEnable = false;
   bool encodeEnable = false;
+  bool isLoading = false;
   File? file;
   ImageSteganography? steg;
   int encryptionType = 0;
@@ -97,13 +98,13 @@ class _HomeState extends State<Home> {
   }
 
   void decodeImage() async {
+    setState(() => isLoading = true);
+
     String? messageFromImage = await steg!.getMessage();
     if (messageFromImage == null) {
-      raiseNotification(
-        context,
-        '${S.of(context).error} ${S.of(context).messageNotFound}',
-        true,
-      );
+      setState(() => isLoading = false);
+      final msg = '${S.of(context).error} ${S.of(context).messageNotFound}';
+      raiseNotification(context, msg, true);
       return;
     }
 
@@ -116,20 +117,19 @@ class _HomeState extends State<Home> {
         messageFromImage = encryter.decryptSalsa(messageFromImage, secret);
     }
     if (messageFromImage == null) {
-      raiseNotification(
-        context,
-        '${S.of(context).error} ${S.of(context).decryptMessage}',
-        true,
-      );
+      setState(() => isLoading = false);
+      final msg = '${S.of(context).error} ${S.of(context).decryptMessage}';
+      raiseNotification(context, msg, true);
       return;
     }
 
+    setState(() => isLoading = false);
     _messageController.text = messageFromImage;
     raiseNotification(context, S.of(context).foundMessageSymbols);
-    setState(() {});
   }
 
   void encodeImage() async {
+    setState(() => isLoading = true);
     String? message = _messageController.text;
 
     // Encrypt message
@@ -142,31 +142,30 @@ class _HomeState extends State<Home> {
           message = encryter.encryptSalsa(message, secret);
       }
       if (message == null) {
-        raiseNotification(
-          context,
-          '${S.of(context).error} ${S.of(context).encryptionMessage}',
-          true,
-        );
+        setState(() => isLoading = false);
+        final msg = '${S.of(context).error} ${S.of(context).encryptionMessage}';
+        raiseNotification(context, msg, true);
         return;
       }
     }
 
     // Check message length
     if (message.length > steg!.maxChars) {
-      final String notification =
+      setState(() => isLoading = false);
+      final msg =
           '${S.of(context).error} ${S.of(context).messageChars}=${message.length}(${S.of(context).afterEncryption})';
-      debugPrint(notification);
-      raiseNotification(context, notification, true);
+      debugPrint(msg);
+      raiseNotification(context, msg, true);
       return;
     }
 
     // Cloak message
     final statusCode = await steg!.cloakMessage(message);
     if (statusCode != null) {
-      final notification =
-          '${S.of(context).error} ${S.of(context).cloakMessage}';
-      debugPrint(notification);
-      raiseNotification(context, notification, true);
+      setState(() => isLoading = false);
+      final msg = '${S.of(context).error} ${S.of(context).cloakMessage}';
+      debugPrint(msg);
+      raiseNotification(context, msg, true);
       return;
     }
 
@@ -186,6 +185,7 @@ class _HomeState extends State<Home> {
         type: FileType.image,
       );
       if (result == null) {
+        setState(() => isLoading = false);
         final notification =
             '${S.of(context).error} ${S.of(context).imageEncoded}';
         debugPrint(notification);
@@ -194,6 +194,8 @@ class _HomeState extends State<Home> {
       }
       notificationWrite = '${S.of(context).imageEncoded}\n$result';
     }
+
+    setState(() => isLoading = false);
     debugPrint(notificationWrite);
     raiseNotification(context, notificationWrite);
   }
@@ -201,8 +203,6 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     encryter = CustomEncrypter.fromPublicKey(publicKey);
-    decodeEnable = false;
-    encodeEnable = false;
     selectedEncryption = [true, false, false];
     super.initState();
   }
@@ -216,8 +216,6 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Add singlechildscrollview for android
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -231,17 +229,19 @@ class _HomeState extends State<Home> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            Container(
-              height: imageHeight,
-              width: imageWidth,
-              margin: symmetricEdgeInsets,
-              child: file == null
-                  ? Center(child: Text(S.of(context).chooseImage))
-                  : Image.file(
-                      file!,
-                      fit: BoxFit.scaleDown,
-                    ),
-            ),
+            isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : Container(
+                    height: imageHeight,
+                    width: imageWidth,
+                    margin: symmetricEdgeInsets,
+                    child: file == null
+                        ? Center(child: Text(S.of(context).chooseImage))
+                        : Image.file(
+                            file!,
+                            fit: BoxFit.scaleDown,
+                          ),
+                  ),
             TextInput(
               controller: _messageController,
               enable: file == null ? false : true,
@@ -250,6 +250,7 @@ class _HomeState extends State<Home> {
               inputHeight: messageBoxH,
               isClearButton: true,
               textAlignVertical: TextAlignVertical.top,
+              maxLength: steg == null ? 100 : steg!.maxChars,
               onUpdate: onInputUpdate,
             ),
             Text(S.of(context).additionalEncryptionMessage),
@@ -274,7 +275,7 @@ class _HomeState extends State<Home> {
           ],
         ),
       ),
-      resizeToAvoidBottomInset: false,
+      // resizeToAvoidBottomInset: false,
       bottomNavigationBar: BottomBar(
         loadImage: loadImage,
         decodeImage: decodeImage,
