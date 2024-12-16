@@ -18,13 +18,12 @@ class _HomeState extends State<Home> {
   final _messageController = TextEditingController();
   final _secretController = TextEditingController();
   late CustomEncrypter encryter;
+  late List<bool> selectedEncryption;
   bool decodeEnable = false;
   bool encodeEnable = false;
   File? file;
   ImageSteganography? steg;
   int encryptionType = 0;
-  List<bool> selectedEncryption = [true, false, false];
-  Uint8List? imageBytes;
 
   bool encodeAvailable() {
     bool encodeAvailable;
@@ -49,7 +48,7 @@ class _HomeState extends State<Home> {
     setState(() {});
   }
 
-  void onSecretUpdate(String text) {
+  void onInputUpdate(String text) {
     encodeEnable = encodeAvailable();
     setState(() {});
   }
@@ -66,19 +65,22 @@ class _HomeState extends State<Home> {
 
   void loadImage() async {
     final result = await FilePicker.platform.pickFiles(
-        allowMultiple: false,
-        type: FileType.custom,
-        allowedExtensions: ['png', 'jpg']);
+      allowMultiple: false,
+      type: FileType.custom,
+      allowedExtensions: allowedFileExtensions,
+    );
     if (result == null) return;
+
+    _messageController.text = '';
 
     try {
       file = File(result.files.single.path!);
       if (file == null) throw Exception('');
 
-      imageBytes = await file!.readAsBytes();
-      steg = ImageSteganography(pngBytes: imageBytes!);
+      final Uint8List imageBytes = await file!.readAsBytes();
+      steg = ImageSteganography(pngBytes: imageBytes);
     } catch (e) {
-      const notification = 'Error: read file';
+      final notification = '${S.of(context).error} ${S.of(context).readFile}';
       debugPrint(notification);
       showMessage(context, notification, true);
       return;
@@ -89,7 +91,7 @@ class _HomeState extends State<Home> {
     setState(() {});
 
     final notification =
-        'Loaded image.\nsize=${steg!.image.width}x${steg!.image.height}x3\npixels=${steg!.image.width * steg!.image.height}\nmax utf-32 chars = ${steg!.maxChars}';
+        '${S.of(context).loadedImage}\n${steg!.image.width}x${steg!.image.height}x3\npixels=${steg!.image.width * steg!.image.height}\nmax utf-32 chars = ${steg!.maxChars}';
     debugPrint(notification);
     raiseNotification(context, notification);
   }
@@ -97,28 +99,33 @@ class _HomeState extends State<Home> {
   void decodeImage() async {
     String? messageFromImage = await steg!.getMessage();
     if (messageFromImage == null) {
-      raiseNotification(context, 'Error: Message not found', true);
+      raiseNotification(
+        context,
+        '${S.of(context).error} ${S.of(context).messageNotFound}',
+        true,
+      );
       return;
     }
 
     switch (encryptionType) {
       case 1:
-        messageFromImage = encryter.decryptAES(
-          messageFromImage,
-          _secretController.text,
-        );
+        final secret = _secretController.text.padRight(32, 'x');
+        messageFromImage = encryter.decryptAES(messageFromImage, secret);
       case 2:
-        messageFromImage = encryter.decryptSalsa(
-          messageFromImage,
-          _secretController.text,
-        );
+        final secret = _secretController.text.padRight(32, 'x');
+        messageFromImage = encryter.decryptSalsa(messageFromImage, secret);
     }
     if (messageFromImage == null) {
-      raiseNotification(context, 'Error decrypt message', true);
+      raiseNotification(
+        context,
+        '${S.of(context).error} ${S.of(context).decryptMessage}',
+        true,
+      );
       return;
     }
 
     _messageController.text = messageFromImage;
+    raiseNotification(context, S.of(context).foundMessageSymbols);
     setState(() {});
   }
 
@@ -135,7 +142,11 @@ class _HomeState extends State<Home> {
           message = encryter.encryptSalsa(message, secret);
       }
       if (message == null) {
-        raiseNotification(context, 'Error: at encryption message', true);
+        raiseNotification(
+          context,
+          '${S.of(context).error} ${S.of(context).encryptionMessage}',
+          true,
+        );
         return;
       }
     }
@@ -143,7 +154,7 @@ class _HomeState extends State<Home> {
     // Check message length
     if (message.length > steg!.maxChars) {
       final String notification =
-          'Error: max chars ${steg!.maxChars}, message chars ${message.length}(after encryption)';
+          '${S.of(context).error} ${S.of(context).messageChars}=${message.length}(${S.of(context).afterEncryption})';
       debugPrint(notification);
       raiseNotification(context, notification, true);
       return;
@@ -152,7 +163,8 @@ class _HomeState extends State<Home> {
     // Cloak message
     final statusCode = await steg!.cloakMessage(message);
     if (statusCode != null) {
-      final notification = 'Error: cloak message.';
+      final notification =
+          '${S.of(context).error} ${S.of(context).cloakMessage}';
       debugPrint(notification);
       raiseNotification(context, notification, true);
       return;
@@ -164,7 +176,8 @@ class _HomeState extends State<Home> {
     if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
       final outputFilePath = '${file!.path.split('.')[0]}-updated.png';
       await File(outputFilePath).writeAsBytes(png);
-      notificationWrite = 'Image encoded.\n${File(outputFilePath).path}';
+      notificationWrite =
+          '${S.of(context).imageEncoded}\n${File(outputFilePath).path}';
     } else {
       String? result = await FilePicker.platform.saveFile(
         dialogTitle: S.of(context).pleaseSelectAnOutputFile,
@@ -173,12 +186,13 @@ class _HomeState extends State<Home> {
         type: FileType.image,
       );
       if (result == null) {
-        const notification = 'Error: Write file.';
+        final notification =
+            '${S.of(context).error} ${S.of(context).imageEncoded}';
         debugPrint(notification);
         raiseNotification(context, notification, true);
         return;
       }
-      notificationWrite = 'Image encoded.\n $result';
+      notificationWrite = '${S.of(context).imageEncoded}\n$result';
     }
     debugPrint(notificationWrite);
     raiseNotification(context, notificationWrite);
@@ -186,10 +200,10 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
-    // encryter = CustomEncrypter();
-    encryter = CustomEncrypter.fromPublicKey('texttext');
+    encryter = CustomEncrypter.fromPublicKey(publicKey);
     decodeEnable = false;
     encodeEnable = false;
+    selectedEncryption = [true, false, false];
     super.initState();
   }
 
@@ -202,6 +216,8 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    // TODO: Add singlechildscrollview for android
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -211,54 +227,52 @@ class _HomeState extends State<Home> {
           style: const TextStyle(color: Colors.white),
         ),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: <Widget>[
-          Container(
-            height: imageHeight,
-            width: imageWidth,
-            margin: symmetricEdgeInsets,
-            padding: EdgeInsets.zero,
-            child: file == null
-                ? Center(child: Text(S.of(context).chooseImage))
-                : Image.file(
-                    file!,
-                    fit: BoxFit.scaleDown,
-                    // fit: BoxFit.contain,
-                  ),
-          ),
-          const Spacer(),
-          TextInput(
-            controller: _messageController,
-            enable: file == null ? false : true,
-            expands: true,
-            hintText: S.of(context).message,
-            inputHeight: messageBoxH,
-            isClearButton: true,
-            textAlignVertical: TextAlignVertical.top,
-            onUpdate: onSecretUpdate,
-          ),
-          Text(S.of(context).additionalEncryptionMessage),
-          EncryptionToggle(
-            context: context,
-            selectedEncryption: selectedEncryption,
-            enable: file != null,
-            action: switchEncryptionType,
-          ),
-          TextInput(
-            controller: _secretController,
-            enable: (file != null && [1, 2].contains(encryptionType))
-                ? true
-                : false,
-            hintText: S.of(context).secrethint,
-            inputFormatters: secretInputFormatter,
-            inputHeight: messageBoxH,
-            isClearButton: true,
-            maxLength: secretLength,
-            // fillByChar: 'X',
-            onUpdate: onSecretUpdate,
-          ),
-        ],
+      body: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            Container(
+              height: imageHeight,
+              width: imageWidth,
+              margin: symmetricEdgeInsets,
+              child: file == null
+                  ? Center(child: Text(S.of(context).chooseImage))
+                  : Image.file(
+                      file!,
+                      fit: BoxFit.scaleDown,
+                    ),
+            ),
+            TextInput(
+              controller: _messageController,
+              enable: file == null ? false : true,
+              expands: true,
+              hintText: S.of(context).message,
+              inputHeight: messageBoxH,
+              isClearButton: true,
+              textAlignVertical: TextAlignVertical.top,
+              onUpdate: onInputUpdate,
+            ),
+            Text(S.of(context).additionalEncryptionMessage),
+            EncryptionToggle(
+              context: context,
+              selectedEncryption: selectedEncryption,
+              enable: file != null,
+              action: switchEncryptionType,
+            ),
+            TextInput(
+              controller: _secretController,
+              enable: (file != null && [1, 2].contains(encryptionType))
+                  ? true
+                  : false,
+              hintText: S.of(context).secrethint,
+              inputFormatters: secretInputFormatter,
+              inputHeight: messageBoxH,
+              isClearButton: true,
+              maxLength: secretLength,
+              onUpdate: onInputUpdate,
+            ),
+          ],
+        ),
       ),
       resizeToAvoidBottomInset: false,
       bottomNavigationBar: BottomBar(

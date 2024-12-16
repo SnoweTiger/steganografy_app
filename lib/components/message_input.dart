@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:steganografy_app/utils/constants.dart';
 import 'package:flutter/services.dart';
+import 'package:steganografy_app/utils/constants.dart';
 
 class TextInput extends StatelessWidget {
   final bool isClearButton, enable, expands;
@@ -20,17 +20,12 @@ class TextInput extends StatelessWidget {
     this.isClearButton = false,
     this.maxLength,
     this.expands = false,
-    // this.maxLines,
     this.textAlignVertical,
     this.inputFormatters,
     this.fillByChar,
     this.onUpdate,
     super.key,
   });
-
-  void onTapOutside(PointerDownEvent event) {
-    controller.text = controller.text.padRight(32, fillByChar!);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +45,6 @@ class TextInput extends StatelessWidget {
         maxLines: maxLines,
         maxLength: maxLength,
         textAlignVertical: textAlignVertical,
-        onTapOutside: fillByChar != null ? onTapOutside : null,
         onChanged: onUpdate,
         decoration: InputDecoration(
           hintText: hintText,

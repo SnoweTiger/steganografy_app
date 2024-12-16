@@ -139,6 +139,126 @@ class S {
       args: [],
     );
   }
+
+  /// `Please select an output file:`
+  String get pleaseSelectAnOutputFile {
+    return Intl.message(
+      'Please select an output file:',
+      name: 'pleaseSelectAnOutputFile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Error:`
+  String get error {
+    return Intl.message(
+      'Error:',
+      name: 'error',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Message not found`
+  String get messageNotFound {
+    return Intl.message(
+      'Message not found',
+      name: 'messageNotFound',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `decrypt message`
+  String get decryptMessage {
+    return Intl.message(
+      'decrypt message',
+      name: 'decryptMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Found message symbols`
+  String get foundMessageSymbols {
+    return Intl.message(
+      'Found message symbols',
+      name: 'foundMessageSymbols',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `encryption message`
+  String get encryptionMessage {
+    return Intl.message(
+      'encryption message',
+      name: 'encryptionMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `message chars`
+  String get messageChars {
+    return Intl.message(
+      'message chars',
+      name: 'messageChars',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `after encryption`
+  String get afterEncryption {
+    return Intl.message(
+      'after encryption',
+      name: 'afterEncryption',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `cloak message`
+  String get cloakMessage {
+    return Intl.message(
+      'cloak message',
+      name: 'cloakMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Image encoded.`
+  String get imageEncoded {
+    return Intl.message(
+      'Image encoded.',
+      name: 'imageEncoded',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `read file`
+  String get readFile {
+    return Intl.message(
+      'read file',
+      name: 'readFile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Loaded image.`
+  String get loadedImage {
+    return Intl.message(
+      'Loaded image.',
+      name: 'loadedImage',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

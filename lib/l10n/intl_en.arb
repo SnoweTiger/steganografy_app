@@ -7,5 +7,17 @@
   "noEncryption": "No encryption",
   "loadImage": "Load image",
   "decode": "Decode",
-  "encodeSave": "Encode & save"
+  "encodeSave": "Encode & save",
+  "pleaseSelectAnOutputFile": "Please select an output file:",
+  "error": "Error:",
+  "messageNotFound": "Message not found",
+  "decryptMessage": "decrypt message",
+  "foundMessageSymbols": "Found message symbols",
+  "encryptionMessage": "encryption message",
+  "messageChars": "message chars",
+  "afterEncryption": "after encryption",
+  "cloakMessage": "cloak message",
+  "imageEncoded": "Image encoded.",
+  "readFile": "read file",
+  "loadedImage": "Loaded image."
 }

@@ -24,12 +24,30 @@ class MessageLookup extends MessageLookupByLibrary {
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "additionalEncryptionMessage": MessageLookupByLibrary.simpleMessage(
             "Additional encryption message?"),
+        "afterEncryption":
+            MessageLookupByLibrary.simpleMessage("after encryption"),
         "chooseImage": MessageLookupByLibrary.simpleMessage("Choose image"),
+        "cloakMessage": MessageLookupByLibrary.simpleMessage("cloak message"),
         "decode": MessageLookupByLibrary.simpleMessage("Decode"),
+        "decryptMessage":
+            MessageLookupByLibrary.simpleMessage("decrypt message"),
         "encodeSave": MessageLookupByLibrary.simpleMessage("Encode & save"),
+        "encryptionMessage":
+            MessageLookupByLibrary.simpleMessage("encryption message"),
+        "error": MessageLookupByLibrary.simpleMessage("Error:"),
+        "foundMessageSymbols":
+            MessageLookupByLibrary.simpleMessage("Found message symbols"),
+        "imageEncoded": MessageLookupByLibrary.simpleMessage("Image encoded."),
         "loadImage": MessageLookupByLibrary.simpleMessage("Load image"),
+        "loadedImage": MessageLookupByLibrary.simpleMessage("Loaded image."),
         "message": MessageLookupByLibrary.simpleMessage("Message"),
+        "messageChars": MessageLookupByLibrary.simpleMessage("message chars"),
+        "messageNotFound":
+            MessageLookupByLibrary.simpleMessage("Message not found"),
         "noEncryption": MessageLookupByLibrary.simpleMessage("No encryption"),
+        "pleaseSelectAnOutputFile": MessageLookupByLibrary.simpleMessage(
+            "Please select an output file:"),
+        "readFile": MessageLookupByLibrary.simpleMessage("read file"),
         "secrethint":
             MessageLookupByLibrary.simpleMessage("32 chars A-z0-9@#\$%&"),
         "title": MessageLookupByLibrary.simpleMessage("Steganografy App")

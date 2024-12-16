@@ -24,14 +24,36 @@ class MessageLookup extends MessageLookupByLibrary {
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "additionalEncryptionMessage":
             MessageLookupByLibrary.simpleMessage("Дополнительное шифрование?"),
+        "afterEncryption":
+            MessageLookupByLibrary.simpleMessage("после шифрования"),
         "chooseImage":
-            MessageLookupByLibrary.simpleMessage("Откройте изображение"),
+            MessageLookupByLibrary.simpleMessage("Выберите изображение"),
+        "cloakMessage":
+            MessageLookupByLibrary.simpleMessage("кодирование изображения"),
         "decode": MessageLookupByLibrary.simpleMessage("Декодировать"),
+        "decryptMessage":
+            MessageLookupByLibrary.simpleMessage("при расшифровке сообщения"),
         "encodeSave":
             MessageLookupByLibrary.simpleMessage("Закодировать и записать"),
+        "encryptionMessage":
+            MessageLookupByLibrary.simpleMessage("шифрование сообщения"),
+        "error": MessageLookupByLibrary.simpleMessage("Ошибка:"),
+        "foundMessageSymbols":
+            MessageLookupByLibrary.simpleMessage("Найдено сообщение"),
+        "imageEncoded":
+            MessageLookupByLibrary.simpleMessage("изображение закодировано"),
         "loadImage": MessageLookupByLibrary.simpleMessage("Открыть"),
+        "loadedImage":
+            MessageLookupByLibrary.simpleMessage("Изображение загружено."),
         "message": MessageLookupByLibrary.simpleMessage("Сообщение"),
+        "messageChars":
+            MessageLookupByLibrary.simpleMessage("сообщение символов"),
+        "messageNotFound":
+            MessageLookupByLibrary.simpleMessage("Сообщение не найдено"),
         "noEncryption": MessageLookupByLibrary.simpleMessage("Без шифрования"),
+        "pleaseSelectAnOutputFile": MessageLookupByLibrary.simpleMessage(
+            "Выберите файл для сохранения:"),
+        "readFile": MessageLookupByLibrary.simpleMessage("чтение файла"),
         "secrethint":
             MessageLookupByLibrary.simpleMessage("32 символа (A-z0-9@#\$%&)"),
         "title": MessageLookupByLibrary.simpleMessage("Стеганография")

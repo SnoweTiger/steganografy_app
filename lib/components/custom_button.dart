@@ -5,13 +5,15 @@ class CustomButton extends StatelessWidget {
   final String title;
   Function action;
   bool disabled;
-  double paddingL, paddingR;
+  double paddingL, paddingR, paddingT, paddingB;
 
   CustomButton({
     required this.action,
     required this.title,
     required this.paddingL,
     required this.paddingR,
+    required this.paddingT,
+    required this.paddingB,
     this.disabled = false,
     super.key,
   });
@@ -23,10 +25,9 @@ class CustomButton extends StatelessWidget {
           margin: EdgeInsets.only(
             left: paddingL,
             right: paddingR,
-            top: paddingV,
-            bottom: paddingV,
+            top: paddingT,
+            bottom: paddingB,
           ),
-          padding: EdgeInsets.zero,
           child: ElevatedButton(
             onPressed: disabled ? null : () => action(),
             style: ElevatedButton.styleFrom(

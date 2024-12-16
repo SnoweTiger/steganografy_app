@@ -13,6 +13,7 @@ const windowsHeight = 800.0;
 const int secretLength = 32;
 
 const publicKey = 'TestKeyX';
+const allowedFileExtensions = ['png', 'jpg'];
 
 final secretInputFormatter = [
   FilteringTextInputFormatter.allow(RegExp('[a-z A-Z 0-9]')),
